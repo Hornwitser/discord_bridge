@@ -1,0 +1,7 @@
+{
+    "name": "discord_chat",
+    "description": "Bridges chat between instances and Discord",
+    "dependencies": {
+        "discord.js": "^12.1.1"
+    }
+}
