@@ -24,7 +24,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		this.channel = await this.client.channels.fetch(this.master.config.get("discord_bridge.channel_id"));
 	}
 
-	async onExit() {
+	async onShutdown() {
 		this.client.destroy();
 	}
 
