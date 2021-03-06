@@ -1,23 +1,25 @@
-let link = require("lib/link");
-let plugin = require("lib/plugin");
-let config = require("lib/config");
+"use strict";
+let link = require("@clusterio/lib/link");
+let plugin = require("@clusterio/lib/plugin");
+let config = require("@clusterio/lib/config");
 
 
 class MasterConfigGroup extends config.PluginConfigGroup { }
 MasterConfigGroup.groupName = "discord_bridge";
+MasterConfigGroup.defaultAccess = ["master", "control"];
 MasterConfigGroup.define({
 	name: "bot_token",
 	title: "Bot Token",
 	description: "Bot token to log into discord with.",
 	type: "string",
-	initial_value: "put your bot token here",
+	optional: true,
 });
 MasterConfigGroup.define({
 	name: "channel_id",
 	title: "Channel ID",
-	description: "Channel ID to bridge chat to",
+	description: "Channel ID to bridge chat to.",
 	type: "string",
-	initial_value: "put channel id here",
+	optional: true,
 });
 MasterConfigGroup.finalize();
 
@@ -25,7 +27,6 @@ module.exports = {
 	name: "discord_bridge",
 	title: "Discord Bridge",
 	description: "Bridges chat between instances and Discord.",
-	version: "0.1.0-alpha",
 	instanceEntrypoint: "instance",
 	masterEntrypoint: "master",
 	MasterConfigGroup,
@@ -49,4 +50,4 @@ module.exports = {
 			},
 		}),
 	},
-}
+};

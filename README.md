@@ -6,7 +6,11 @@ Bridges chat between a Discord channel and instances.
 Installation
 ------------
 
-1. Clone to plugins folder
-2. Run `npm install --only=production` inside the discord_bridge folder.
-3. Configure discord_bridge.bot_token and discord_bridge.channel_id in
-   master config.
+Run the following commands in the folder Clusterio is installed to:
+
+    npm install @hornwitser/discord_bridge
+    npx clusteriomaster plugin add @hornwitser/discord_bridge
+
+Substitute clusteriomaster with clusterioslave or clusterioctl if this a dedicate slave or ctl installation respectively.
+
+Once installed you need to set the `discord_bridge.bot_token` and `discord_bridge.channel_id` in the master config to make the bridge operational.
