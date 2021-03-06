@@ -42,7 +42,6 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		this.logger.info("Logging in to Discord");
 		try {
 			await this.client.login(this.master.config.get("discord_bridge.bot_token"));
-			await events.once(this.client, "ready");
 		} catch (err) {
 			this.logger.error(`Error logging in to Discord, bridge is offline:\n${err.stack}`);
 			this.client.destroy();
