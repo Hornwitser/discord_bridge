@@ -95,13 +95,30 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		this.broadcastEventToSlaves(this.info.messages.discordChat, { content });
 	}
 
-	async instanceChatEventHandler(message) {
+	async instanceActionEventHandler(message) {
 		if (!this.channel) {
 			return;
 		}
 
-		let { instance_name, content } = message.data;
-		await this.channel.send(`[${instance_name}] ${content}`, { disableMentions: "all" });
+		// Known action types at the time of writing:
+		// WARNING COMMAND SHOUT CHAT COLOR JOIN LEAVE KICK BAN UNBANNED PROMOTE DEMOTE
+		let { instance_name, action, content } = message.data;
+		if (
+			["JOIN", "LEAVE"].includes(action) && this.master.config.get("discord_bridge.bridge_player_joins")
+			|| action === "CHAT" && this.master.config.get("discord_bridge.bridge_player_chat")
+			|| action === "SHOUT" && this.master.config.get("discord_bridge.bridge_player_shouts")
+			|| (
+				["KICK", "BAN", "UNBANNED"].includes(action)
+				&& this.master.config.get("discord_bridge.bridge_player_kicks_and_bans")
+			)
+			|| action === "COMMAND" && this.master.config.get("discord_bridge.bridge_player_commands")
+			|| (
+				["PROMOTE", "DEMOTE"].includes(action)
+				&& this.master.config.get("discord_bridge.bridge_player_promotions")
+			)
+		) {
+			await this.channel.send(`[${instance_name}] ${content}`, { disableMentions: "all" });
+		}
 	}
 }
 

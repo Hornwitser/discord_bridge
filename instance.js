@@ -17,8 +17,8 @@ class InstancePlugin extends libPlugin.BaseInstancePlugin {
 
 	onMasterConnectionEvent(event) {
 		if (event === "connect") {
-			for (let message of this.messageQueue) {
-				this.sendChat(message);
+			for (let [action, content] of this.messageQueue) {
+				this.sendChat(action, content);
 			}
 			this.messageQueue = [];
 		}
@@ -29,20 +29,23 @@ class InstancePlugin extends libPlugin.BaseInstancePlugin {
 		await this.instance.server.sendRcon(`/sc game.print('${text}')`, true);
 	}
 
-	sendChat(message) {
-		this.info.messages.instanceChat.send(this.instance, {
+	sendChat(action, content) {
+		this.info.messages.instanceAction.send(this.instance, {
 			instance_name: this.instance.name,
-			content: message,
+			action,
+			content,
 		});
 	}
 
 	async onOutput(output) {
-		if (output.type === "action" && output.action === "CHAT") {
-			if (this.slave.connector.connected) {
-				this.sendChat(output.message);
-			} else {
-				this.messageQueue.push(output.message);
-			}
+		if (output.type !== "action") {
+			return;
+		}
+
+		if (this.slave.connector.connected) {
+			this.sendChat(output.action, output.message);
+		} else {
+			this.messageQueue.push([output.action, output.message]);
 		}
 	}
 }
