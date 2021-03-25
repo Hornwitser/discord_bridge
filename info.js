@@ -1,6 +1,5 @@
 "use strict";
 let link = require("@clusterio/lib/link");
-let plugin = require("@clusterio/lib/plugin");
 let config = require("@clusterio/lib/config");
 
 
