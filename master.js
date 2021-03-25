@@ -95,6 +95,22 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		this.broadcastEventToSlaves(this.info.messages.discordChat, { content });
 	}
 
+	async onInstanceStatusChanged(instance, prev) {
+		if (!this.channel || !this.master.config.get("discord_bridge.notify_instance_starts")) {
+			return;
+		}
+		console.log(instance.status, prev);
+		let instanceName = instance.config.get("instance.name");
+
+		if (instance.status === "running" && prev === "starting") {
+			await this.channel.send(`[${instanceName}] started`);
+		}
+
+		if (instance.status === "stopped" && prev === "running") {
+			await this.channel.send(`[${instanceName}] stopped`);
+		}
+	}
+
 	async instanceActionEventHandler(message) {
 		if (!this.channel) {
 			return;

@@ -62,6 +62,13 @@ MasterConfigGroup.define({
 	type: "boolean",
 	initial_value: false,
 });
+MasterConfigGroup.define({
+	name: "notify_instance_starts",
+	title: "Notify Instance Starts",
+	description: "Notify of instance starts and stops to the Discord channel.",
+	type: "boolean",
+	initial_value: true,
+});
 MasterConfigGroup.finalize();
 
 module.exports = {
