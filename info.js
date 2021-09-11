@@ -1,9 +1,8 @@
 "use strict";
-let link = require("@clusterio/lib/link");
-let config = require("@clusterio/lib/config");
+const { libConfig, libLink } = require("@clusterio/lib");
 
 
-class MasterConfigGroup extends config.PluginConfigGroup { }
+class MasterConfigGroup extends libConfig.PluginConfigGroup { }
 MasterConfigGroup.groupName = "discord_bridge";
 MasterConfigGroup.defaultAccess = ["master", "control"];
 MasterConfigGroup.define({
@@ -80,7 +79,7 @@ module.exports = {
 	MasterConfigGroup,
 
 	messages: {
-		instanceAction: new link.Event({
+		instanceAction: new libLink.Event({
 			type: "discord_bridge:instance_action",
 			links: ["instance-slave", "slave-master"],
 			forwardTo: "master",
@@ -90,7 +89,7 @@ module.exports = {
 				"content": { type: "string" },
 			},
 		}),
-		discordChat: new link.Event({
+		discordChat: new libLink.Event({
 			type: "discord_bridge:discord_chat",
 			links: ["master-slave", "slave-instance"],
 			broadcastTo: "instance",
