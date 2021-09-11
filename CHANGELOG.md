@@ -3,6 +3,7 @@
 ## v0.2.3
 
 - Updated for Clusterio 2.0.0-alpha.9
+- Fixed instance stop notification not being shown.
 
 ## v0.2.2
 

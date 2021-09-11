@@ -106,7 +106,15 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 			await this.channel.send(`[${instanceName}] started`);
 		}
 
+		if (instance.status === "stopped" && prev === "starting") {
+			await this.channel.send(`[${instanceName}] failed to start`);
+		}
+
 		if (instance.status === "stopped" && prev === "running") {
+			await this.channel.send(`[${instanceName}] abruptly stopped`);
+		}
+
+		if (instance.status === "stopped" && prev === "stopping") {
 			await this.channel.send(`[${instanceName}] stopped`);
 		}
 	}
