@@ -99,7 +99,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		if (!this.channel || !this.master.config.get("discord_bridge.notify_instance_starts")) {
 			return;
 		}
-		console.log(instance.status, prev);
+
 		let instanceName = instance.config.get("instance.name");
 
 		if (instance.status === "running" && prev === "starting") {
