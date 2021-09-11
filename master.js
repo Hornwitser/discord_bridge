@@ -119,6 +119,23 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		}
 	}
 
+	onSlaveConnectionEvent(slaveConnection, event) {
+		if (!this.channel || !this.master.config.get("discord_bridge.notify_slave_connections")) {
+			return;
+		}
+
+		let slaveName = this.master.slaves.get(slaveConnection.id).name;
+		if (event === "connect") {
+			this.channel.send(`${slaveName} connected`).catch(
+				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
+			);
+		} else if (event === "close") {
+			this.channel.send(`${slaveName} disconnected`).catch(
+				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
+			);
+		}
+	}
+
 	async instanceActionEventHandler(message) {
 		if (!this.channel) {
 			return;

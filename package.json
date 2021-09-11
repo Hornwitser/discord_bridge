@@ -1,6 +1,6 @@
 {
   "name": "@hornwitser/discord_bridge",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Cluterio plugin bridging chat between instances and Discord",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

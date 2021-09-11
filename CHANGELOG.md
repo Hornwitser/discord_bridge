@@ -4,6 +4,7 @@
 
 - Updated for Clusterio 2.0.0-alpha.9
 - Fixed instance stop notification not being shown.
+- Added option to notify of slave connection and disconnection.
 
 ## v0.2.2
 

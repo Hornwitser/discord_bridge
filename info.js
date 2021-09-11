@@ -68,6 +68,13 @@ MasterConfigGroup.define({
 	type: "boolean",
 	initial_value: true,
 });
+MasterConfigGroup.define({
+	name: "notify_slave_connections",
+	title: "Notify Slave Connections",
+	description: "Notify of slave connecting and disconnecting to the Discord channel.",
+	type: "boolean",
+	initial_value: true,
+});
 MasterConfigGroup.finalize();
 
 module.exports = {
