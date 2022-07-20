@@ -34,8 +34,14 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 			return;
 		}
 
-		this.client = new Discord.Client();
-		this.client.on("message", (message) => {
+		this.client = new Discord.Client({
+			intents: [
+				Discord.Intents.FLAGS.GUILDS,
+				Discord.Intents.FLAGS.GUILD_MESSAGES,
+				1 << 15, // MESSAGE_CONTENT,
+			],
+		});
+		this.client.on("messageCreate", (message) => {
 			this.discordMessage(message).catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
 		});
 
@@ -158,7 +164,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 				&& this.master.config.get("discord_bridge.bridge_player_promotions")
 			)
 		) {
-			await this.channel.send(`[${instance_name}] ${content}`, { disableMentions: "all" });
+			await this.channel.send(`[${instance_name}] ${content}`, { allowedMentions: { parse: [] }});
 		}
 	}
 }
