@@ -9,14 +9,12 @@ module.exports = (env = {}) => merge(common(env), {
 	context: __dirname,
 	entry: "./web/index.jsx",
 	output: {
-		filename: "bundle.js",
 		path: path.resolve(__dirname, "dist", "web"),
 	},
 	plugins: [
 		new webpack.container.ModuleFederationPlugin({
 			name: "discord_bridge",
 			library: { type: "var", name: "plugin_discord_bridge" },
-			filename: "remoteEntry.js",
 			exposes: {
 				"./info": "./info.js",
 				"./package.json": "./package.json",
