@@ -15,7 +15,7 @@ class InstancePlugin extends libPlugin.BaseInstancePlugin {
 		this.messageQueue = [];
 	}
 
-	onMasterConnectionEvent(event) {
+	onControllerConnectionEvent(event) {
 		if (event === "connect") {
 			for (let [action, content] of this.messageQueue) {
 				this.sendChat(action, content);
@@ -42,7 +42,7 @@ class InstancePlugin extends libPlugin.BaseInstancePlugin {
 			return;
 		}
 
-		if (this.slave.connector.connected) {
+		if (this.host.connector.connected) {
 			this.sendChat(output.action, output.message);
 		} else {
 			this.messageQueue.push([output.action, output.message]);

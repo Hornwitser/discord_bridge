@@ -4,7 +4,7 @@
 
 - Updated for Clusterio 2.0.0-alpha.9
 - Fixed instance stop notification not being shown.
-- Added option to notify of slave connection and disconnection.
+- Added option to notify of host connection and disconnection.
 
 ## v0.2.2
 
@@ -14,7 +14,7 @@
 
 ## v0.2.1
 
-- Fixed hang on master startup.
+- Fixed hang on controller startup.
 
 ## v0.2.0
 

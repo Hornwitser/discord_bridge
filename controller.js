@@ -5,9 +5,9 @@ const Discord = require("discord.js");
 const plugin = require("@clusterio/lib/plugin");
 
 
-class MasterPlugin extends plugin.BaseMasterPlugin {
+class ControllerPlugin extends plugin.BaseControllerPlugin {
 	async init() {
-		this.master.config.on("fieldChanged", (group, field, prev) => {
+		this.controller.config.on("fieldChanged", (group, field, prev) => {
 			if (group.name === "discord_bridge") {
 				if (field === "bot_token") {
 					this.connect().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
@@ -28,7 +28,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		}
 		this.channel = null;
 
-		let token = this.master.config.get("discord_bridge.bot_token");
+		let token = this.controller.config.get("discord_bridge.bot_token");
 		if (!token) {
 			this.logger.warn("Bot token not configured, bridge is offline");
 			return;
@@ -47,7 +47,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 
 		this.logger.info("Logging in to Discord");
 		try {
-			await this.client.login(this.master.config.get("discord_bridge.bot_token"));
+			await this.client.login(this.controller.config.get("discord_bridge.bot_token"));
 		} catch (err) {
 			this.logger.error(`Error logging in to Discord, bridge is offline:\n${err.stack}`);
 			this.client.destroy();
@@ -64,7 +64,7 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 			return;
 		}
 
-		let id = this.master.config.get("discord_bridge.channel_id");
+		let id = this.controller.config.get("discord_bridge.channel_id");
 		if (!id) {
 			this.logger.warn("Channel ID not configured, bridge is offline");
 			return
@@ -98,11 +98,11 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		}
 
 		let content = `[Discord] ${message.member.displayName}: ${message.cleanContent}`;
-		this.broadcastEventToSlaves(this.info.messages.discordChat, { content });
+		this.broadcastEventToHosts(this.info.messages.discordChat, { content });
 	}
 
 	async onInstanceStatusChanged(instance, prev) {
-		if (!this.channel || !this.master.config.get("discord_bridge.notify_instance_starts")) {
+		if (!this.channel || !this.controller.config.get("discord_bridge.notify_instance_starts")) {
 			return;
 		}
 
@@ -125,18 +125,18 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		}
 	}
 
-	onSlaveConnectionEvent(slaveConnection, event) {
-		if (!this.channel || !this.master.config.get("discord_bridge.notify_slave_connections")) {
+	onHostConnectionEvent(hostConnection, event) {
+		if (!this.channel || !this.controller.config.get("discord_bridge.notify_host_connections")) {
 			return;
 		}
 
-		let slaveName = this.master.slaves.get(slaveConnection.id).name;
+		let hostName = this.controller.hosts.get(hostConnection.id).name;
 		if (event === "connect") {
-			this.channel.send(`${slaveName} connected`).catch(
+			this.channel.send(`${hostName} connected`).catch(
 				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
 			);
 		} else if (event === "close") {
-			this.channel.send(`${slaveName} disconnected`).catch(
+			this.channel.send(`${hostName} disconnected`).catch(
 				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
 			);
 		}
@@ -151,17 +151,17 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 		// WARNING COMMAND SHOUT CHAT COLOR JOIN LEAVE KICK BAN UNBANNED PROMOTE DEMOTE
 		let { instance_name, action, content } = message.data;
 		if (
-			["JOIN", "LEAVE"].includes(action) && this.master.config.get("discord_bridge.bridge_player_joins")
-			|| action === "CHAT" && this.master.config.get("discord_bridge.bridge_player_chat")
-			|| action === "SHOUT" && this.master.config.get("discord_bridge.bridge_player_shouts")
+			["JOIN", "LEAVE"].includes(action) && this.controller.config.get("discord_bridge.bridge_player_joins")
+			|| action === "CHAT" && this.controller.config.get("discord_bridge.bridge_player_chat")
+			|| action === "SHOUT" && this.controller.config.get("discord_bridge.bridge_player_shouts")
 			|| (
 				["KICK", "BAN", "UNBANNED"].includes(action)
-				&& this.master.config.get("discord_bridge.bridge_player_kicks_and_bans")
+				&& this.controller.config.get("discord_bridge.bridge_player_kicks_and_bans")
 			)
-			|| action === "COMMAND" && this.master.config.get("discord_bridge.bridge_player_commands")
+			|| action === "COMMAND" && this.controller.config.get("discord_bridge.bridge_player_commands")
 			|| (
 				["PROMOTE", "DEMOTE"].includes(action)
-				&& this.master.config.get("discord_bridge.bridge_player_promotions")
+				&& this.controller.config.get("discord_bridge.bridge_player_promotions")
 			)
 		) {
 			await this.channel.send(`[${instance_name}] ${content}`, { allowedMentions: { parse: [] }});
@@ -170,5 +170,5 @@ class MasterPlugin extends plugin.BaseMasterPlugin {
 }
 
 module.exports = {
-	MasterPlugin,
+	ControllerPlugin,
 };
