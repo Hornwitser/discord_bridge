@@ -36,9 +36,9 @@ class ControllerPlugin extends plugin.BaseControllerPlugin {
 
 		this.client = new Discord.Client({
 			intents: [
-				Discord.Intents.FLAGS.GUILDS,
-				Discord.Intents.FLAGS.GUILD_MESSAGES,
-				1 << 15, // MESSAGE_CONTENT,
+				Discord.GatewayIntentBits.Guilds,
+				Discord.GatewayIntentBits.GuildMessages,
+				Discord.GatewayIntentBits.MessageContent,
 			],
 		});
 		this.client.on("messageCreate", (message) => {
