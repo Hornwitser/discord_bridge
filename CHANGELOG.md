@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.5
+
+- Updated for Clusterio 2.0.0-alpha.14
+
+## v0.2.4
+
+- Updated for Clusterio 2.0.0-alpha.13
+
 ## v0.2.3
 
 - Updated for Clusterio 2.0.0-alpha.9

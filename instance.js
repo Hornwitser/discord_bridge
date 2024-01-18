@@ -1,6 +1,8 @@
 "use strict";
-const libPlugin = require("@clusterio/lib/plugin");
-const libLuaTools = require("@clusterio/lib/lua_tools");
+const lib = require("@clusterio/lib");
+const { BaseInstancePlugin } = require("@clusterio/host");
+
+const { InstanceActionEvent, DiscordChatEvent } = require("./info.js");
 
 
 /**
@@ -10,9 +12,10 @@ function removeTags(content) {
 	return content.replace(/(\[gps=-?\d+,-?\d+\]|\[train=\d+\])/g, "");
 }
 
-class InstancePlugin extends libPlugin.BaseInstancePlugin {
+class InstancePlugin extends BaseInstancePlugin {
 	async init() {
 		this.messageQueue = [];
+		this.instance.handle(DiscordChatEvent, this.handleDiscordChatEvent.bind(this));
 	}
 
 	onControllerConnectionEvent(event) {
@@ -24,17 +27,15 @@ class InstancePlugin extends libPlugin.BaseInstancePlugin {
 		}
 	}
 
-	async discordChatEventHandler(message) {
-		let text = libLuaTools.escapeString(message.data.content);
+	async handleDiscordChatEvent(event) {
+		let text = lib.escapeString(event.content);
 		await this.instance.server.sendRcon(`/sc game.print('${text}')`, true);
 	}
 
 	sendChat(action, content) {
-		this.info.messages.instanceAction.send(this.instance, {
-			instance_name: this.instance.name,
-			action,
-			content,
-		});
+		this.instance.sendTo("controller",
+			new InstanceActionEvent(this.instance.name, action, content)
+		);
 	}
 
 	async onOutput(output) {

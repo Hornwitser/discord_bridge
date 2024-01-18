@@ -1,22 +1,21 @@
 "use strict";
-const events = require("events");
 const Discord = require("discord.js");
+const { BaseControllerPlugin } = require("@clusterio/controller");
 
-const plugin = require("@clusterio/lib/plugin");
+const { InstanceActionEvent, DiscordChatEvent } = require("./info.js");
 
 
-class ControllerPlugin extends plugin.BaseControllerPlugin {
+class ControllerPlugin extends BaseControllerPlugin {
 	async init() {
-		this.controller.config.on("fieldChanged", (group, field, prev) => {
-			if (group.name === "discord_bridge") {
-				if (field === "bot_token") {
-					this.connect().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
-				} else if (field === "channel_id") {
-					this.fetchChannel().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
-				}
+		this.controller.config.on("fieldChanged", (field, curr, prev) => {
+			if (field === "discord_bridge.bot_token") {
+				this.connect().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
+			} else if (field === "discord_bridge.channel_id") {
+				this.fetchChannel().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
 			}
 		});
 
+		this.controller.handle(InstanceActionEvent, this.handleInstanceAction.bind(this));
 		this.client = null;
 		await this.connect();
 	}
@@ -98,7 +97,7 @@ class ControllerPlugin extends plugin.BaseControllerPlugin {
 		}
 
 		let content = `[Discord] ${message.member.displayName}: ${message.cleanContent}`;
-		this.broadcastEventToHosts(this.info.messages.discordChat, { content });
+		this.controller.sendTo("allInstances", new DiscordChatEvent(content));
 	}
 
 	async onInstanceStatusChanged(instance, prev) {
@@ -142,14 +141,14 @@ class ControllerPlugin extends plugin.BaseControllerPlugin {
 		}
 	}
 
-	async instanceActionEventHandler(message) {
+	async handleInstanceAction(request) {
 		if (!this.channel) {
 			return;
 		}
 
 		// Known action types at the time of writing:
 		// WARNING COMMAND SHOUT CHAT COLOR JOIN LEAVE KICK BAN UNBANNED PROMOTE DEMOTE
-		let { instance_name, action, content } = message.data;
+		let { instanceName, action, content } = request;
 		if (
 			["JOIN", "LEAVE"].includes(action) && this.controller.config.get("discord_bridge.bridge_player_joins")
 			|| action === "CHAT" && this.controller.config.get("discord_bridge.bridge_player_chat")
@@ -164,7 +163,7 @@ class ControllerPlugin extends plugin.BaseControllerPlugin {
 				&& this.controller.config.get("discord_bridge.bridge_player_promotions")
 			)
 		) {
-			await this.channel.send(`[${instance_name}] ${content}`, { allowedMentions: { parse: [] }});
+			await this.channel.send(`[${instanceName}] ${content}`, { allowedMentions: { parse: [] }});
 		}
 	}
 }

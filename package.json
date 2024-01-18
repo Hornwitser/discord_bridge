@@ -1,7 +1,8 @@
 {
   "name": "@hornwitser/discord_bridge",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Cluterio plugin bridging chat between instances and Discord",
+  "main": "info.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "webpack-cli --env production"
@@ -22,14 +23,14 @@
   },
   "homepage": "https://github.com/Hornwitser/discord_bridge#readme",
   "peerDependencies": {
-    "@clusterio/lib": "^2.0.0-alpha.4"
+    "@clusterio/lib": "^2.0.0-alpha.14"
   },
   "devDependencies": {
-    "@clusterio/lib": "^2.0.0-alpha.13",
-    "@clusterio/web_ui": "^2.0.0-alpha.5",
-    "webpack": "^5.28.0",
-    "webpack-cli": "^4.2.0",
-    "webpack-merge": "^5.3.0"
+    "@clusterio/lib": "^2.0.0-alpha.14",
+    "@clusterio/web_ui": "^2.0.0-alpha.14",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-merge": "^5.9.0"
   },
   "dependencies": {
     "discord.js": "^14.14.1"

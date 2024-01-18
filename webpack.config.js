@@ -16,7 +16,7 @@ module.exports = (env = {}) => merge(common(env), {
 			name: "discord_bridge",
 			library: { type: "var", name: "plugin_discord_bridge" },
 			exposes: {
-				"./info": "./info.js",
+				"./": "./info.js",
 				"./package.json": "./package.json",
 			},
 			shared: {
