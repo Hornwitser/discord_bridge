@@ -84,9 +84,14 @@ class ControllerPlugin extends BaseControllerPlugin {
 	async onShutdown() {
 		if (this.client) {
 			this.client.destroy();
+			this.client = null;
+			this.channel = null;
 		}
 	}
 
+	/**
+	 * @param message {Discord.Message}
+	 */
 	async discordMessage(message) {
 		if (message.author.bot) {
 			return;
@@ -96,32 +101,45 @@ class ControllerPlugin extends BaseControllerPlugin {
 			return;
 		}
 
-		let content = `[Discord] ${message.member.displayName}: ${message.cleanContent}`;
+		const template = this.controller.config.get("discord_bridge.discord_template");
+		const content = template.replace(/(__display_name__|__username__|__content__)/g, (sub) => ({
+			"__display_name__": message.member.displayName,
+			"__username__": message.member.user.tag,
+			"__content__": message.cleanContent,
+		}[sub]));
 		this.controller.sendTo("allInstances", new DiscordChatEvent(content));
 	}
 
+	formatMessage(template, hostName, instanceName, content) {
+		return template.replace(/(__host_name__|__instance_name__|__content__)/g, (sub) => ({
+			"__host_name__": hostName,
+			"__instance_name__": instanceName,
+			"__content__": content,
+		}[sub]));
+	}
+
+	getHostName(hostId) {
+		return this.controller.hosts.get(hostId)?.name ?? "";
+	}
+
 	async onInstanceStatusChanged(instance, prev) {
-		if (!this.channel || !this.controller.config.get("discord_bridge.notify_instance_starts")) {
+		if (!this.channel || !this.controller.config.get("discord_bridge.notify_instance_status")) {
 			return;
 		}
 
 		let instanceName = instance.config.get("instance.name");
+		const hostName = this.getHostName(instance.config.get("instance.assigned_host"));
 
-		if (instance.status === "running" && prev === "starting") {
-			await this.channel.send(`[${instanceName}] started`);
+		const template =
+			this.controller.config.get("discord_bridge.instance_status_templates")[`${prev}:${instance.status}`]
+			?? this.controller.config.get("discord_bridge.instance_status_templates")[instance.status]
+		;
+
+		if (!template) {
+			return;
 		}
 
-		if (instance.status === "stopped" && prev === "starting") {
-			await this.channel.send(`[${instanceName}] failed to start`);
-		}
-
-		if (instance.status === "stopped" && prev === "running") {
-			await this.channel.send(`[${instanceName}] abruptly stopped`);
-		}
-
-		if (instance.status === "stopped" && prev === "stopping") {
-			await this.channel.send(`[${instanceName}] stopped`);
-		}
+		await this.channel.send(this.formatMessage(template, hostName, instanceName, ""));
 	}
 
 	onHostConnectionEvent(hostConnection, event) {
@@ -130,18 +148,17 @@ class ControllerPlugin extends BaseControllerPlugin {
 		}
 
 		let hostName = this.controller.hosts.get(hostConnection.id).name;
-		if (event === "connect") {
-			this.channel.send(`${hostName} connected`).catch(
-				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
-			);
-		} else if (event === "close") {
-			this.channel.send(`${hostName} disconnected`).catch(
-				err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
-			);
+		const template = this.controller.config.get("discord_bridge.host_templates")[event];
+		if (!template) {
+			return;
 		}
+		const message = this.formatMessage(template, hostName, "", "");
+		this.channel.send(message).catch(
+			err => { this.logger.error(`Unexpected error:\n${err.stack}`); }
+		);
 	}
 
-	async handleInstanceAction(request) {
+	async handleInstanceAction(request, src) {
 		if (!this.channel) {
 			return;
 		}
@@ -163,7 +180,14 @@ class ControllerPlugin extends BaseControllerPlugin {
 				&& this.controller.config.get("discord_bridge.bridge_player_promotions")
 			)
 		) {
-			await this.channel.send(`[${instanceName}] ${content}`, { allowedMentions: { parse: [] }});
+			const template = this.controller.config.get("discord_bridge.player_templates")[action];
+			if (!template) {
+				return;
+			}
+			const instance = this.controller.instances.get(src.id);
+			const hostName = this.getHostName(instance.config.get("instance.assigned_host"));
+			const message = this.formatMessage(template, hostName, instanceName, content);
+			await this.channel.send(message, { allowedMentions: { parse: [] }});
 		}
 	}
 }

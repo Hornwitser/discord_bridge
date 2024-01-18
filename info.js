@@ -70,6 +70,15 @@ const plugin = {
 			type: "string",
 			optional: true,
 		},
+		"discord_bridge.discord_template": {
+			title: "Discord template",
+			description:
+				"Template to use for sending chat messages from Discord in game. In the template the string " +
+				"__display_name__ is replaced with the display name of the user sending the message, " +
+				"__username__ is replaced with the username and __content__ with the message content.",
+			type: "string",
+			initialValue: "[Discord] __display_name__: __content__",
+		},
 		"discord_bridge.bridge_player_shouts": {
 			title: "Bridge Player Shouts",
 			description: "Bridge shouts made with /shout to the Discord channel.",
@@ -106,17 +115,69 @@ const plugin = {
 			type: "boolean",
 			initialValue: false,
 		},
-		"discord_bridge.notify_instance_starts": {
-			title: "Notify Instance Starts",
-			description: "Notify of instance starts and stops to the Discord channel.",
+		"discord_bridge.player_templates": {
+			title: "Player templates",
+			description:
+				"Template to use for sending bridged player action messages from Factorio. In the template the " +
+				"string __instance_name__ is replaced with the name of the instance the message originated from " +
+				"and __content__ is replaced with the content of the message. The available actions that can be " +
+				"bridged are COMMAND SHOUT CHAT JOIN LEAVE KICK BAN UNBANNED PROMOTE DEMOTE.",
+			type: "object",
+			initialValue: {
+				"COMMAND": "[__instance_name__] __content__",
+				"SHOUT": "[__instance_name__] __content__",
+				"CHAT": "[__instance_name__] __content__",
+				"JOIN": "[__instance_name__] __content__",
+				"LEAVE": "[__instance_name__] __content__",
+				"KICK": "[__instance_name__] __content__",
+				"BAN": "[__instance_name__] __content__",
+				"UNBANNED": "[__instance_name__] __content__",
+				"PROMOTE": "[__instance_name__] __content__",
+				"DEMOTE": "[__instance_name__] __content__",
+			},
+		},
+		"discord_bridge.notify_instance_status": {
+			title: "Notify Instance Status",
+			description: "Notify of instance status changes to the Discord channel.",
 			type: "boolean",
 			initialValue: true,
+		},
+		"discord_bridge.instance_status_templates": {
+			title: "Instance Status Templates",
+			description:
+				"Template to use for sending notifications about instance status changes. In the template the " +
+				"string __instance_name__ and __host_name__ are replaced with the instance and host the change " +
+				"occured on. Templates specify previous:current status and the possible instance statuses are " +
+				"undefined unknown stopped starting running stopping creating_save exporting_data deleted",
+			type: "object",
+			initialValue: {
+				"starting:running": "[__instance_name__] started",
+				"starting:stopped": "[__instance_name__] failed to start",
+				"running:stopped": "[__instance_name__] abruptly stopped",
+				"stopping:stopped": "[__instance_name__] stopped",
+				"undefined:unassigned": "[__instance_name__] was created",
+				"deleted": "[__instance_name__] was deleted",
+			},
 		},
 		"discord_bridge.notify_host_connections": {
 			title: "Notify Host Connections",
 			description: "Notify of host connecting and disconnecting to the Discord channel.",
 			type: "boolean",
 			initialValue: true,
+		},
+		"discord_bridge.host_templates": {
+			title: "Host templates",
+			description:
+				"Template to use for sending notifications about host connection events. In the template the " +
+				"string __host_name__ is replaced with the name of the host the connection event occured from. " +
+				"The possible events that can happen are connect drop resume close.",
+			type: "object",
+			initialValue: {
+				"connect": "[__host_name__] connected",
+				"drop": "",
+				"resume": "",
+				"close": "[__host_name__] disconnected",
+			},
 		},
 	},
 

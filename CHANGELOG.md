@@ -3,6 +3,8 @@
 ## v0.2.5
 
 - Updated for Clusterio 2.0.0-alpha.14
+- Added configurable templates for how the messages appears in the game and on Discord.
+- Added templates for instance created and deleted statuses
 
 ## v0.2.4
 
