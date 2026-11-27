@@ -104,11 +104,14 @@ class DiscordBridge {
 		}
 
 		const template = this.controller.config.get("discord_bridge.discord_template");
-		const content = template.replace(/(__display_name__|__username__|__content__)/g, (sub) => ({
-			"__display_name__": message.member.displayName,
-			"__username__": message.member.user.tag,
+		const values = {
+			"__display_name__": message.member?.displayName ?? message.author.displayName,
+			"__username__": message.author.tag,
 			"__content__": message.cleanContent,
-		}[sub]));
+		};
+		const content = template.replace(/(__display_name__|__username__|__content__)/g, (sub) => (
+			values[sub].normalize("NFKC")
+		));
 		this.controller.sendTo("allInstances", new DiscordChatEvent(content));
 	}
 
