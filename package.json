@@ -1,11 +1,11 @@
 {
   "name": "@hornwitser/discord_bridge",
-  "version": "0.2.5",
+  "version": "2.1.2",
   "description": "Cluterio plugin bridging chat between instances and Discord",
-  "main": "info.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "webpack-cli --env production"
+    "test": "npm pack --dry-run",
+    "prepare": "vite build"
   },
   "repository": {
     "type": "git",
@@ -13,6 +13,7 @@
   },
   "keywords": [
     "clusterio",
+    "clusterio-plugin",
     "factorio",
     "discord"
   ],
@@ -23,19 +24,26 @@
   },
   "homepage": "https://github.com/Hornwitser/discord_bridge#readme",
   "peerDependencies": {
-    "@clusterio/lib": "^2.0.0-alpha.14"
+    "@clusterio/lib": "^2.1.0"
   },
   "devDependencies": {
-    "@clusterio/lib": "^2.0.0-alpha.14",
-    "@clusterio/web_ui": "^2.0.0-alpha.14",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-merge": "^5.9.0"
+    "@clusterio/lib": "^2.1.0",
+    "@clusterio/web_ui": "^2.1.0",
+    "vite": "^8.4.0"
   },
   "dependencies": {
-    "discord.js": "^14.14.1"
+    "discord.js": "^14.28.1"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@clusterio/controller": {
+      "optional": true
+    }
   }
 }
