@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.2
+- Updated for Clusterio 2.1.2
+- Move to vite
+
 ## v0.2.5
 
 - Updated for Clusterio 2.0.0-alpha.14

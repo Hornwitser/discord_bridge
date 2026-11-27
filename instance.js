@@ -1,56 +1,43 @@
-"use strict";
-const lib = require("@clusterio/lib");
-const { BaseInstancePlugin } = require("@clusterio/host");
-
-const { InstanceActionEvent, DiscordChatEvent } = require("./info.js");
-
+import { escapeString } from "@clusterio/lib";
+import { InstanceActionEvent, DiscordChatEvent } from "./index.js";
 
 /**
- * Removes gps and train tags from messags
+ * Removes GPS and train tags from messages.
  */
 function removeTags(content) {
 	return content.replace(/(\[gps=-?\d+,-?\d+\]|\[train=\d+\])/g, "");
 }
 
-class InstancePlugin extends BaseInstancePlugin {
-	async init() {
-		this.messageQueue = [];
-		this.instance.handle(DiscordChatEvent, this.handleDiscordChatEvent.bind(this));
+export default async function({ instance, host, plugin }) {
+	let messageQueue = [];
+
+	function sendChat(action, content) {
+		instance.sendTo("controller", new InstanceActionEvent(instance.name, action, removeTags(content)));
 	}
 
-	onControllerConnectionEvent(event) {
-		if (event === "connect") {
-			for (let [action, content] of this.messageQueue) {
-				this.sendChat(action, content);
+	instance.handle(DiscordChatEvent, async (event) => {
+		const text = escapeString(event.content);
+		await instance.sendRcon(`/sc game.print('${text}')`, true, plugin.name);
+	});
+
+	instance.hooks.controllerConnectionEvent.attach(plugin.name, (event) => {
+		if (event === "connect" || event === "resume") {
+			for (const [action, content] of messageQueue) {
+				sendChat(action, content);
 			}
-			this.messageQueue = [];
+			messageQueue = [];
 		}
-	}
+	});
 
-	async handleDiscordChatEvent(event) {
-		let text = lib.escapeString(event.content);
-		await this.instance.server.sendRcon(`/sc game.print('${text}')`, true);
-	}
-
-	sendChat(action, content) {
-		this.instance.sendTo("controller",
-			new InstanceActionEvent(this.instance.name, action, content)
-		);
-	}
-
-	async onOutput(output) {
+	instance.hooks.output.attach(plugin.name, (output) => {
 		if (output.type !== "action") {
 			return;
 		}
 
-		if (this.host.connector.connected) {
-			this.sendChat(output.action, output.message);
+		if (host.connector.connected) {
+			sendChat(output.action, output.message);
 		} else {
-			this.messageQueue.push([output.action, output.message]);
+			messageQueue.push([output.action, output.message]);
 		}
-	}
+	});
 }
-
-module.exports = {
-	InstancePlugin,
-};

@@ -1,7 +1,4 @@
-"use strict";
-const lib = require("@clusterio/lib");
-
-class InstanceActionEvent {
+export class InstanceActionEvent {
 	static type = "event";
 	static src = "instance";
 	static dst = "controller";
@@ -28,7 +25,7 @@ class InstanceActionEvent {
 	}
 }
 
-class DiscordChatEvent {
+export class DiscordChatEvent {
 	static type = "event";
 	static src = "controller";
 	static dst = "instance";
@@ -51,12 +48,12 @@ class DiscordChatEvent {
 	}
 }
 
-const plugin = {
+export const plugin = {
 	name: "discord_bridge",
 	title: "Discord Bridge",
 	description: "Bridges chat between instances and Discord.",
-	instanceEntrypoint: "instance",
-	controllerEntrypoint: "controller",
+	instanceEntrypoint: "instance.js",
+	controllerEntrypoint: "controller.js",
 	controllerConfigFields: {
 		"discord_bridge.bot_token": {
 			title: "Bot Token",
@@ -174,21 +171,17 @@ const plugin = {
 			type: "object",
 			initialValue: {
 				"connect": "[__host_name__] connected",
-				"drop": "",
-				"resume": "",
+				"drop": "[__host_name__] dropped",
+				"resume": "[__host_name__] resumed",
 				"close": "[__host_name__] disconnected",
 			},
 		},
 	},
 
+	features: ["ScriptCommands"],
+
 	messages: [
 		InstanceActionEvent,
 		DiscordChatEvent,
 	],
-};
-
-module.exports = {
-	plugin,
-	InstanceActionEvent,
-	DiscordChatEvent,
 };
