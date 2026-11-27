@@ -1,25 +1,20 @@
-"use strict";
-const Discord = require("discord.js");
-const { BaseControllerPlugin } = require("@clusterio/controller");
+import Discord from "discord.js";
+import { InstanceActionEvent, DiscordChatEvent } from "./index.js";
 
-const { InstanceActionEvent, DiscordChatEvent } = require("./info.js");
-
-
-class ControllerPlugin extends BaseControllerPlugin {
-	async init() {
-		this.controller.config.on("fieldChanged", (field, curr, prev) => {
-			if (field === "discord_bridge.bot_token") {
-				this.connect().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
-			} else if (field === "discord_bridge.channel_id") {
-				this.fetchChannel().catch(err => { this.logger.error(`Unexpected error:\n${err.stack}`); });
-			}
-		});
-
-		this.controller.handle(InstanceActionEvent, this.handleInstanceAction.bind(this));
+class DiscordBridge {
+	constructor(controller, logger) {
+		this.controller = controller;
+		this.logger = logger;
 		this.client = null;
-		await this.connect();
+		this.channel = null;
 	}
-
+	async onControllerConfigFieldChanged(field) {
+		if (field === "discord_bridge.bot_token") {
+			await this.connect();
+		} else if (field === "discord_bridge.channel_id") {
+			await this.fetchChannel();
+		}
+	}
 	async connect() {
 		if (this.client) {
 			this.client.destroy();
@@ -66,19 +61,26 @@ class ControllerPlugin extends BaseControllerPlugin {
 		let id = this.controller.config.get("discord_bridge.channel_id");
 		if (!id) {
 			this.logger.warn("Channel ID not configured, bridge is offline");
-			return
+			return;
 		}
 
+		let channel;
 		try {
-			this.channel = await this.client.channels.fetch(id);
+			channel = await this.client.channels.fetch(id);
 		} catch (err) {
 			if (err.code !== 10003) { // Unknown channel
 				throw err;
 			}
 		}
-		if (this.channel === null) {
+		if (!channel) {
 			this.logger.error(`Channel ID ${id} was not found`);
+			return;
 		}
+		if (!channel.isSendable()) {
+			this.logger.error(`Channel ID ${id} does not support sending messages, bridge is offline`);
+			return;
+		}
+		this.channel = channel;
 	}
 
 	async onShutdown() {
@@ -102,11 +104,14 @@ class ControllerPlugin extends BaseControllerPlugin {
 		}
 
 		const template = this.controller.config.get("discord_bridge.discord_template");
-		const content = template.replace(/(__display_name__|__username__|__content__)/g, (sub) => ({
-			"__display_name__": message.member.displayName,
-			"__username__": message.member.user.tag,
+		const values = {
+			"__display_name__": message.member?.displayName ?? message.author.displayName,
+			"__username__": message.author.tag,
 			"__content__": message.cleanContent,
-		}[sub]));
+		};
+		const content = template.replace(/(__display_name__|__username__|__content__)/g, (sub) => (
+			values[sub].normalize("NFKC")
+		));
 		this.controller.sendTo("allInstances", new DiscordChatEvent(content));
 	}
 
@@ -187,11 +192,17 @@ class ControllerPlugin extends BaseControllerPlugin {
 			const instance = this.controller.instances.get(src.id);
 			const hostName = this.getHostName(instance.config.get("instance.assigned_host"));
 			const message = this.formatMessage(template, hostName, instanceName, content);
-			await this.channel.send(message, { allowedMentions: { parse: [] }});
+			await this.channel.send({ content: message, allowedMentions: { parse: [] } });
 		}
 	}
 }
 
-module.exports = {
-	ControllerPlugin,
-};
+export default async function({ controller, logger, plugin }) {
+	const bridge = new DiscordBridge(controller, logger);
+	controller.handle(InstanceActionEvent, bridge.handleInstanceAction.bind(bridge));
+	controller.hooks.controllerConfigFieldChanged.attach(plugin.name, bridge.onControllerConfigFieldChanged.bind(bridge));
+	controller.hooks.instanceStatusChanged.attach(plugin.name, bridge.onInstanceStatusChanged.bind(bridge));
+	controller.hooks.hostConnectionEvent.attach(plugin.name, bridge.onHostConnectionEvent.bind(bridge));
+	controller.hooks.shutdown.attach(plugin.name, bridge.onShutdown.bind(bridge));
+	await bridge.connect();
+}
